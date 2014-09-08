@@ -36,13 +36,15 @@
                         <span data-bind="if: includeMap">List</span>
                     </button>
                 <!-- /ko -->
+
+                <button id="favs">Favs</button>
             </div>
         </div>
         <div id="list" data-bind="visible: includeList">
             <div class="wrapper">
                 <ul class="stops">
                     <!-- ko foreach: stops() -->
-                        <li class="stop" data-bind="click: toggleTrips, attr: {id: cssId}">
+                        <li class="stop" >
                             <div class="stop-name">
                                 <div class="name" >
                                     <span data-bind="text: name"></span>
@@ -52,7 +54,7 @@
                                 </div>
                                 <span class="desc" data-bind="text: desc"></span>
                             </div>
-                            <div class="buttons" aria-hidden="true"> <!-- aria-hidden , hides info from screen readers-->
+                            <div class="buttons" aria-hidden="true" data-bind="click: toggleTrips, attr: {id: cssId}"> <!-- aria-hidden , hides info from screen readers-->
                                 <!-- ko ifnot: showTrips -->
                                     <button>+</button>
                                 <!-- /ko -->
@@ -78,6 +80,8 @@
                                     <!-- /ko -->
                                 </ul>
                             <!-- /ko -->
+
+                            <span class="fav-icon" data="">&#9733;</span>
                         </li>
                     <!-- /ko -->
                 </ul>

@@ -6,6 +6,7 @@ var NProgress = require('NProgress');
 var LocateControl = require('./LocateControl');
 var RoutesCollection = require('./models/RoutesCollection');
 var VehicleCollection = require('./models/VehicleCollection');
+var FavoritesCollection = require('./models/FavoritesCollection');
 var Shape = require('./models/Shape');
 var StopCollection = require('./models/StopCollection');
 var config = require('./config');
@@ -35,6 +36,7 @@ function Rappid() {
     this.includeToggleBtn = ko.computed(function() {
         return !this.includeList() || !this.includeMap();
     }.bind(this));
+
 }
 
 Rappid.prototype = {
@@ -59,6 +61,7 @@ Rappid.prototype = {
             }.bind(this))
             .then(this.selectRoute.bind(this))
             .catch(console.error);
+
     },
     refresh: function() {
         // refresh() should be the final place where all the promises die
@@ -84,6 +87,7 @@ Rappid.prototype = {
                 // FIXME: Show the error in the UI
                 console.error(e);
             })
+            .then(this.setupFavs.bind())
             .finally(refreshCompletion.bind(this));
     },
     setupMap: function() {
@@ -193,6 +197,9 @@ Rappid.prototype = {
                 window.location.href = "https://www.youtube.com/watch?v=ygr5AHufBN4";
             }, 5000);
         }, 2000);
+    },
+    setupFavs: function () {
+        this.favorites = new FavoritesCollection();
     }
 };
 
