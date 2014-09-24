@@ -8,6 +8,7 @@ var VehicleCollection = require('./models/VehicleCollection');
 var Shape = require('./models/Shape');
 var StopCollection = require('./models/StopCollection');
 var config = require('./config');
+var CycleDirections = require('./models/CycleDirections');
 
 var CapMetroAPIError = config.errors.CapMetroAPIError();
 
@@ -18,10 +19,12 @@ function Rappid() {
     // route shape and stops go on rappid.routeLayer
     // vehicles go on rappid.vehicles.layer
     this.routeLayer = null;
+    this.bikeLayer = null;
 
     // data
     this.vehicles = null;
     this.shape = null;
+    this.closestStop = null;
 
     // viewmodels
     this.availableRoutes = ko.observableArray();
@@ -34,6 +37,7 @@ function Rappid() {
     this.includeToggleBtn = ko.computed(function() {
         return !this.includeList() || !this.includeMap();
     }.bind(this));
+
 }
 
 Rappid.prototype = {
@@ -60,7 +64,6 @@ Rappid.prototype = {
             .catch(console.error);
     },
     refresh: function() {
-        console.log('refreshing', this, arguments);
         function refreshCompletion() {
             NProgress.done();
             this.refreshTimeout = setTimeout(this.refresh.bind(this), config.REFRESH_INTERVAL);
@@ -122,9 +125,13 @@ Rappid.prototype = {
 
         this.map.on('locationfound', function(e) {
             if (!this.latlng.lat || !this.latlng.lng) {
-                StopCollection.closest(this.stops(), e.latlng);
+                this.closestStop = StopCollection.closest(this.stops(), e.latlng);
             }
             this.latlng = e.latlng;
+
+            this.setupBikeRoute();
+            this.setupBikeEvents();
+
         }.bind(this));
     },
     selectRoute: function() {
@@ -167,6 +174,44 @@ Rappid.prototype = {
             }.bind(this));
 
         return when.all([shapePromise, stopsPromise]);
+    },
+    setupBikeRoute: function () {
+        var start = [this.latlng.lat, this.latlng.lng];
+        var end = [this.closestStop.lat(), this.closestStop.lon()];
+        CycleDirections.getDirections(start,end).done(function (directions) {
+            console.log('directions ', directions);
+            this.bikeLayer = new L.Polyline(directions.shape, {
+                    color: 'rgb(46, 204, 113)',
+                    stroke: true,
+                    weight: 5,
+                    opacity: 0.9,
+                    smoothFactor: 1
+                });
+
+                this.map.addLayer(this.bikeLayer);
+        }.bind(this));
+    },
+    setupBikeEvents: function () {
+        var stops = this.stops();
+        for(var i=0; i < stops.length; i++) {
+            stops[i].marker.addEventListener('click', function (e) {
+                var start = [this.latlng.lat, this.latlng.lng];
+                var end = [e.latlng.lat, e.latlng.lng];
+                this.map.removeLayer(this.bikeLayer);
+                CycleDirections.getDirections(start,end).done(function (directions) {
+                    this.bikeLayer = new L.Polyline(directions.shape, {
+                            color: 'rgb(46, 204, 113)',
+                            stroke: true,
+                            weight: 5,
+                            opacity: 0.9,
+                            smoothFactor: 1
+                        });
+
+                        this.map.addLayer(this.bikeLayer);
+                }.bind(this));
+
+            }.bind(this), false);
+        }
     },
     resize: function(e) {
         if (window.screen.width <= 1024) {

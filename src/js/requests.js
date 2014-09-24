@@ -27,7 +27,7 @@ var requests = {
 
             var logFn = xhr.status > 299 ? console.error : console.log;
             // logFn.call(undefined, requestID.toString(), '[' + method.toUpperCase() + ']', url, '=>', xhr.status);
-            console.log(requestID.toString(), '[' + method.toUpperCase() + ']', url, '=>', xhr.status);
+            //console.log(requestID.toString(), '[' + method.toUpperCase() + ']', url, '=>', xhr.status);
 
             // Sometimes different environments don't use case-insensitive matching
             var contentType = xhr.getResponseHeader('content-type') || xhr.getResponseHeader('Content-type');

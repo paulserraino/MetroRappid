@@ -6,6 +6,7 @@ var config = window.config = require('./config');
 var rappid = window.rappid = new Rappid();
 var fingerme = window.fingerme = new Fingerprint({canvas: true}).get();
 
+
 ko.applyBindings(rappid, document.getElementById('lerappid'));
 rappid.start();
 
