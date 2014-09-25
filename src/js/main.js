@@ -1,13 +1,10 @@
 var ko = window.ko = require('knockout');
-var Fingerprint = require('fingerprintjs');
-var Rappid = require('./rappid');
+var CycleRappid = require('./cyclerappid');
 var config = window.config = require('./config');
 
-var rappid = window.rappid = new Rappid();
-var fingerme = window.fingerme = new Fingerprint({canvas: true}).get();
+var cyclerappid = window.rappid = new CycleRappid();
 
 
 ko.applyBindings(rappid, document.getElementById('lerappid'));
-rappid.start();
+cyclerappid.start();
 
-window.analytics.identify(fingerme);

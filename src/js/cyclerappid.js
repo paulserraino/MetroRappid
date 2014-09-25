@@ -12,7 +12,7 @@ var CycleDirections = require('./models/CycleDirections');
 
 var CapMetroAPIError = config.errors.CapMetroAPIError();
 
-function Rappid() {
+function CycleRappid() {
     // leaflet
     this.map = null;
     this.latlng = {lat: null, lng: null};
@@ -40,7 +40,7 @@ function Rappid() {
 
 }
 
-Rappid.prototype = {
+CycleRappid.prototype = {
     start: function() {
         NProgress.configure({ showSpinner: false });
 
@@ -64,39 +64,15 @@ Rappid.prototype = {
             .catch(console.error);
     },
     refresh: function() {
-        function refreshCompletion() {
-            NProgress.done();
-            this.refreshTimeout = setTimeout(this.refresh.bind(this), config.REFRESH_INTERVAL);
-            // refresh on mobile unlock/maximize
-            // don't bind until the first refresh is done unless you want a world of race conditions with the animations ;_;
-            window.addEventListener('pageshow', this.refresh.bind(this));
-        }
+        NProgress.done();
 
-        if (this.refreshTimeout) {
-            clearTimeout(this.refreshTimeout);
-            this.refreshTimeout = null;
-            // FIXME: Is there some way to abort any existings requests/promises?
-            // Two refreshes happening at once seems bad.
-            // We could do put a mutex on refresh(). But if refresh() gets stuck, no more refreshes will get scheduled.
-        }
+        //this.refreshTimeout = setTimeout(this.refresh.bind(this), config.REFRESH_INTERVAL);
+        // refresh on mobile unlock/maximize
+        // don't bind until the first refresh is done unless you want a world of race conditions with the animations ;_;
+        window.addEventListener('pageshow', this.refresh.bind(this));
+      
 
-        NProgress.start();
-
-        this.vehicles.refresh()
-            .progress(function() {
-                // console.log('progress', arguments);
-                // FIXME: Show the progress notifications in the UI
-            }.bind(this))
-            .then(function() {
-                var stopsRefresh = this.stops().map(function(stop) { return stop.refresh(); });
-                return when.all(stopsRefresh);
-            }.bind(this))
-            .catch(CapMetroAPIError, this.rustle.bind(this))
-            .catch(function(e) {
-                // FIXME: Show the error in the UI
-                console.error(e);
-            })
-            .finally(refreshCompletion.bind(this));
+        
     },
     setupMap: function() {
         var tileLayer,
@@ -104,7 +80,7 @@ Rappid.prototype = {
             locateCtrl;
 
         this.map = L.map('map', {zoomControl: false,});
-        this.map.setView([30.267153, -97.743061], 12);
+        this.map.setView([30.267153, -97.743061], 15);
 
         tileLayer = L.tileLayer('https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
             maxZoom: 18,
@@ -232,21 +208,7 @@ Rappid.prototype = {
         document.body.scrollTop = document.documentElement.scrollTop = 0;
     },
     track: function() {
-        var routeDirection = this.route().id + '-' + this.route().direction;
-        window.analytics.track('TripSelected', {
-            name: routeDirection,
-            route: this.route().id,
-            direction: this.route().direction,
-            fingerprint: window.fingerme,
-            coordinates: [this.latlng.lat, this.latlng.lng],
-            location: {
-                latitude: this.latlng.lat,
-                longitude: this.latlng.lng,
-            },
-            app: {
-                version: config.VERSION
-            },
-        });
+        
     },
     rustle: function() {
         window.alert('There was a problem fetching data from CapMetro.\nClose the app and try again.');
@@ -259,4 +221,4 @@ Rappid.prototype = {
     }
 };
 
-module.exports = Rappid;
+module.exports = CycleRappid;
